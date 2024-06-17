@@ -6,8 +6,7 @@ type Runner[I, O any] interface {
 	Run(n int, logic func(in chan I, out chan O, err chan error)) (chan I, chan O, chan error)
 }
 
-type runner[I, O any] struct {
-}
+type runner[I, O any] struct{}
 
 func New[I, O any]() Runner[I, O] {
 	return &runner[I, O]{}
@@ -16,7 +15,11 @@ func New[I, O any]() Runner[I, O] {
 func (r *runner[I, O]) Run(
 	nWorkers int,
 	logic func(in chan I, out chan O, err chan error),
-) (chan I, chan O, chan error) {
+) (
+	chan I,
+	chan O,
+	chan error,
+) {
 	in, out, err := make(chan I), make(chan O), make(chan error)
 
 	go func() {
