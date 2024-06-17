@@ -7,10 +7,9 @@ import (
 )
 
 func TestSum(t *testing.T) {
-	r := New[int, int](2)
-	in, out := r.In(), r.Out()
+	r := New[int, int]()
 
-	go r.Run(func(in, out chan int, err chan error) {
+	in, out, _ := r.Run(2, func(in, out chan int, err chan error) {
 		sum := 0
 		for v := range in {
 			sum += v
@@ -21,8 +20,7 @@ func TestSum(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		in <- i
 	}
-
-	r.Done()
+	close(in)
 
 	total := 0
 	for v := range out {
@@ -33,12 +31,11 @@ func TestSum(t *testing.T) {
 }
 
 func TestSumLarge(t *testing.T) {
-	r := New[int, int](100)
-	in, out := r.In(), r.Out()
-
 	const n = 1000000
 
-	go r.Run(func(in, out chan int, err chan error) {
+	r := New[int, int]()
+
+	in, out, _ := r.Run(100, func(in, out chan int, err chan error) {
 		sum := 0
 		for v := range in {
 			sum += v
@@ -46,13 +43,10 @@ func TestSumLarge(t *testing.T) {
 		out <- sum
 	})
 
-	go func() {
-		defer r.Done()
-
-		for i := 0; i <= n; i++ {
-			in <- i
-		}
-	}()
+	for i := 0; i <= n; i++ {
+		in <- i
+	}
+	close(in)
 
 	total := 0
 
